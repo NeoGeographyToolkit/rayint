@@ -1,17 +1,25 @@
-cmake_minimum_required(VERSION 3.1)
-include(ExternalProject)
+cmake_minimum_required(VERSION 3.16.2) # For boost 1.72
 
-project(RayIntersection)
+project(RayIntersection VERSION 0.1.0 DESCRIPTION "rayint")
+
+include(ExternalProject)
 
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "Setting build type to 'RELWITHDEBINFO' as none was specified.")
     set(CMAKE_BUILD_TYPE RELWITHDEBINFO)
 endif()
 
-set(CMAKE_CXX_STANDARD 11)
-
-if(CMAKE_COMPILER_IS_GNUCC)
-    add_definitions(-Wall -Wextra -pedantic)
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11_FLAG)
+CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X_FLAG)
+if(COMPILER_SUPPORTS_CXX11_FLAG)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(COMPILER_SUPPORTS_CXX11 TRUE)
+elseif(COMPILER_SUPPORTS_CXX0X_FLAG)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+    set(COMPILER_SUPPORTS_CXX11 TRUE)
+elseif(MSVC AND NOT (MSVC_VERSION LESS 1800))
+    set(COMPILER_SUPPORTS_CXX11 TRUE)
 endif()
 
 FIND_PACKAGE(OpenMP)
@@ -20,18 +28,24 @@ if(OPENMP_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
+if(NOT COMPILER_SUPPORTS_CXX11)
+    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+endif()
+    
 find_package(PNG REQUIRED)
 find_package(JPEG REQUIRED)
 find_package(TIFF REQUIRED)
 
-add_subdirectory(elibs)
+#add_subdirectory(elibs)
 
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/elibs/mve/libs/)
-link_directories(
-    ${CMAKE_SOURCE_DIR}/elibs/mve/libs/mve
-    ${CMAKE_SOURCE_DIR}/elibs/mve/libs/util
-)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/mve/libs)
 
-include_directories(libs)
+# These are built by parent cmake
+# link_directories(
+#     ${CMAKE_SOURCE_DIR}/elibs/mve/libs/mve
+#     ${CMAKE_SOURCE_DIR}/elibs/mve/libs/util
+# )
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs)
 
 add_subdirectory(apps)
