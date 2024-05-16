@@ -49,3 +49,7 @@ include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/mve/libs)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs)
 
 add_subdirectory(apps)
+
+install(DIRECTORY "libs/acc" DESTINATION ${CMAKE_INSTALL_PREFIX}/include/rayint)
+install(DIRECTORY "libs/math" DESTINATION ${CMAKE_INSTALL_PREFIX}/include/rayint)
+
